@@ -6,7 +6,10 @@ import joblib
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import os, traceback, time
+import os, traceback, time, logging
+
+# Suppress annoying terminal warnings locally
+logging.getLogger("streamlit.runtime.scriptrunner_utils.script_run_context").setLevel(logging.ERROR)
 
 # ── PAGE CONFIG ──
 st.set_page_config(page_title="DataVerse AI", page_icon="🏙️", layout="wide", initial_sidebar_state="expanded")
@@ -133,7 +136,7 @@ if page == "🏠 Executive Overview":
                          title='Average Price by Location')
             fig.update_layout(template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                               font=dict(family='Inter'), coloraxis_showscale=False, height=500)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig)
 
         with col2:
             # Price Distribution
@@ -141,7 +144,7 @@ if page == "🏠 Executive Overview":
                                 color_discrete_sequence=['#6C63FF'])
             fig2.update_layout(template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                                font=dict(family='Inter'), height=500)
-            st.plotly_chart(fig2, use_container_width=True)
+            st.plotly_chart(fig2)
 
         col3, col4 = st.columns(2)
         with col3:
@@ -149,7 +152,7 @@ if page == "🏠 Executive Overview":
                               title='Price vs Area (colored by BHK)', color_continuous_scale='Plasma')
             fig3.update_layout(template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                                font=dict(family='Inter'), height=450)
-            st.plotly_chart(fig3, use_container_width=True)
+            st.plotly_chart(fig3)
 
         with col4:
             prop_counts = df['property_type'].value_counts().reset_index()
@@ -157,7 +160,7 @@ if page == "🏠 Executive Overview":
             fig4 = px.pie(prop_counts, values='count', names='type', title='Property Type Split',
                           color_discrete_sequence=['#6C63FF','#00D4AA','#FF6B6B'], hole=0.5)
             fig4.update_layout(template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', font=dict(family='Inter'), height=450)
-            st.plotly_chart(fig4, use_container_width=True)
+            st.plotly_chart(fig4)
 
 # ═══════════════════════════════════════
 # PAGE 2: AI PRICE PREDICTOR
@@ -178,7 +181,7 @@ elif page == "🤖 AI Price Predictor":
         furnishing = st.selectbox("Furnishing", ['Unfurnished','Semi-Furnished','Furnished'])
         property_type = st.selectbox("Property Type", ['Apartment','Independent House','Villa'])
 
-    if st.button("⚡ Generate AI Prediction", type="primary", use_container_width=True):
+    if st.button("⚡ Generate AI Prediction", type="primary"):
         if model:
             try:
                 lat,lon = ALL_COORDS.get(location,(12.9716,77.5946))
@@ -264,7 +267,7 @@ elif page == "🚇 Metro Proximity Pivot":
         fig.update_traces(textposition='top center', textfont_size=9)
         fig.update_layout(template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                           font=dict(family='Inter'), height=500)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig)
 
     with col2:
         fig2 = px.bar(pivot_df.sort_values('Distance (km)'), x='Location', y='Distance (km)',
@@ -272,10 +275,10 @@ elif page == "🚇 Metro Proximity Pivot":
                        title='Distance to Nearest Metro by Location')
         fig2.update_layout(template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                            font=dict(family='Inter'), xaxis_tickangle=-45, height=500)
-        st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(fig2)
 
     st.markdown("### Full Proximity Table")
-    st.dataframe(pivot_df.style.format({'Avg Price (₹)':'₹{:,.0f}','Distance (km)':'{:.2f}'}), use_container_width=True)
+    st.dataframe(pivot_df.style.format({'Avg Price (₹)':'₹{:,.0f}','Distance (km)':'{:.2f}'}))
 
 # ═══════════════════════════════════════
 # PAGE 4: DEEP ANALYTICS
@@ -292,14 +295,14 @@ elif page == "📊 Deep Analytics":
             corr = df[numeric_cols].corr()
             fig = px.imshow(corr, text_auto='.2f', color_continuous_scale='RdBu_r', title='Correlation Heatmap')
             fig.update_layout(template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', font=dict(family='Inter'), height=500)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig)
 
         with col2:
             fig2 = px.box(df, x='bhk', y='price', color='property_type', title='Price by BHK & Property Type',
                           color_discrete_sequence=['#6C63FF','#00D4AA','#FF6B6B'])
             fig2.update_layout(template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                                font=dict(family='Inter'), height=500)
-            st.plotly_chart(fig2, use_container_width=True)
+            st.plotly_chart(fig2)
 
         col3, col4 = st.columns(2)
         with col3:
@@ -307,14 +310,14 @@ elif page == "📊 Deep Analytics":
                              color_discrete_sequence=['#6C63FF','#00D4AA','#FF6B6B'])
             fig3.update_layout(template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                                font=dict(family='Inter'), height=450)
-            st.plotly_chart(fig3, use_container_width=True)
+            st.plotly_chart(fig3)
 
         with col4:
             fig4 = px.scatter(df, x='age', y='price', color='location', title='Price vs Property Age',
                               color_discrete_sequence=px.colors.qualitative.Set3)
             fig4.update_layout(template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                                font=dict(family='Inter'), height=450, showlegend=False)
-            st.plotly_chart(fig4, use_container_width=True)
+            st.plotly_chart(fig4)
 
 # ═══════════════════════════════════════
 # PAGE 5: AI INSIGHTS
