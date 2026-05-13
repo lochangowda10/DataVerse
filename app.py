@@ -191,14 +191,25 @@ elif page == "🤖 AI Price Predictor":
                     'location_mean_price':1.2e7,'property_mean_price':1.1e7 if property_type=='Apartment' else 1.8e7,
                     'distance_to_metro_km':float(dist)
                 }])
-                log_pred = model.predict(features)[0]
-                price = np.expm1(log_pred)
-
-                st.markdown("")
-                r1,r2,r3 = st.columns(3)
-                r1.metric("Predicted Price", f"₹ {price:,.0f}")
-                r2.metric("Nearest Metro", nearest)
-                r3.metric("Metro Distance", f"{dist:.2f} km")
+                
+                # Track inference time
+                start_time = time.perf_counter()
+                
+                # Predict log_price
+                log_prediction = model.predict(features)[0]
+                actual_price = np.expm1(log_prediction)
+                
+                end_time = time.perf_counter()
+                inference_time_ms = (end_time - start_time) * 1000
+                
+                st.success("✅ Prediction Successful!")
+                
+                r1, r2 = st.columns(2)
+                r1.metric(label="Predicted Property Price", value=f"₹ {actual_price:,.2f}")
+                r2.metric(label="⚡ Inference Latency", value=f"{inference_time_ms:.2f} ms")
+                
+                st.caption("Calculated via Ridge-Stacked Ensemble (XGBoost + HGB + RF)")
+                st.info(f"Distance to nearest Metro Hub used for this prediction: **{dist:.2f} km**")
 
                 st.markdown(f"""
                 <div class="insight-box-green">
