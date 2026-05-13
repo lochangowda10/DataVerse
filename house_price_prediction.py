@@ -1,74 +1,119 @@
-# ================================
+# ============================================
 # HOUSE PRICE PREDICTION PROJECT
-# ================================
+# FINAL OPTIMIZED VERSION
+# ============================================
 
-# --------------------------------
-# STEP 1 — Import Libraries
-# --------------------------------
+# ==================================================
+# STEP 1 — IMPORT LIBRARIES
+# ==================================================
 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import joblib
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import (
+    mean_absolute_error,
+    mean_squared_error,
+    r2_score
+)
 
 
-# --------------------------------
-# STEP 2 — Load Dataset
-# --------------------------------
+# ==================================================
+# STEP 2 — LOAD DATASET
+# ==================================================
 
 df = pd.read_csv("house_prices_bangalore.csv")
 
 
-# --------------------------------
-# STEP 3 — Basic Data Inspection
-# --------------------------------
+# ==================================================
+# STEP 3 — BASIC DATA INSPECTION
+# ==================================================
 
-print("First 5 Rows:")
+print("\n================ FIRST 5 ROWS ================\n")
 print(df.head())
 
-print("\nShape of Dataset:")
+print("\n================ DATASET SHAPE ================\n")
 print(df.shape)
-
-print("\nColumn Names:")
-print(df.columns)
-
-print("\nDataset Information:")
-print(df.info())
-
-print("\nMissing Values:")
+print("\n================ MISSING VALUES ================\n")
 print(df.isnull().sum())
 
-print("\nStatistical Summary:")
-print(df.describe())
 
-
-# --------------------------------
-# STEP 4 — Data Cleaning
-# --------------------------------
+# ==================================================
+# STEP 4 — DATA CLEANING
+# ==================================================
 
 # Remove missing values
 df = df.dropna()
 
-# Check duplicate rows
-print("\nDuplicate Rows:")
-print(df.duplicated().sum())
-
 # Remove duplicate rows
 df = df.drop_duplicates()
 
-# Final dataset shape after cleaning
-print("\nDataset Shape After Cleaning:")
+print("\n================ FINAL DATASET SHAPE ================\n")
 print(df.shape)
 
 
-# --------------------------------
-# STEP 5 — Data Visualization
-# --------------------------------
+# ==================================================
+# STEP 5 — REMOVE WEAK FEATURES
+# ==================================================
 
-# Distribution of house prices
+# Removing weak features
+# because simpler model = better accuracy
+
+df = df.drop(
+    ['balcony', 'parking'],
+    axis=1
+)
+
+
+# ==================================================
+# STEP 6 — FEATURE ENGINEERING
+# ==================================================
+
+# Total rooms feature
+df['total_rooms'] = df['bhk'] + df['bath']
+
+# Price per sqft feature
+df['price_per_sqft'] = df['price'] / df['area']
+
+
+# ==================================================
+# STEP 7 — OUTLIER REMOVAL
+# ==================================================
+
+# Removing extreme outliers using IQR method
+
+Q1 = df['price'].quantile(0.25)
+Q3 = df['price'].quantile(0.75)
+
+IQR = Q3 - Q1
+
+lower_limit = Q1 - 1.5 * IQR
+upper_limit = Q3 + 1.5 * IQR
+
+df = df[
+    (df['price'] >= lower_limit) &
+    (df['price'] <= upper_limit)
+]
+
+print("\n================ DATASET SHAPE AFTER OUTLIER REMOVAL ================\n")
+print(df.shape)
+
+
+# ==================================================
+# STEP 8 — VISUALIZATIONS
+# ==================================================
+
+# --------------------------------------------------
+# PRICE DISTRIBUTION
+# --------------------------------------------------
+
 plt.figure(figsize=(8, 5))
 
-df['price'].hist()
+df['price'].hist(bins=30)
 
 plt.title("Distribution of House Prices")
 plt.xlabel("Price")
@@ -77,11 +122,11 @@ plt.ylabel("Frequency")
 plt.show()
 
 
-# --------------------------------
-# STEP 6 — Correlation Heatmap
-# --------------------------------
+# --------------------------------------------------
+# CORRELATION HEATMAP
+# --------------------------------------------------
 
-plt.figure(figsize=(12, 8))
+plt.figure(figsize=(10, 7))
 
 sns.heatmap(
     df.corr(numeric_only=True),
@@ -94,33 +139,58 @@ plt.title("Correlation Heatmap")
 plt.show()
 
 
-# --------------------------------
-# STEP 7 — Split Features & Target
-# --------------------------------
+# --------------------------------------------------
+# AREA VS PRICE
+# --------------------------------------------------
+
+plt.figure(figsize=(8, 6))
+
+sns.scatterplot(
+    x='area',
+    y='price',
+    data=df
+)
+
+plt.title("Area vs Price")
+
+plt.show()
+
+
+# ==================================================
+# STEP 9 — LOCATION ANALYSIS
+# ==================================================
+
+print("\n================ LOCATION WISE AVERAGE PRICE ================\n")
+
+location_price = df.groupby('location')['price'].mean()
+
+print(location_price.sort_values(ascending=False))
+
+
+# ==================================================
+# STEP 10 — SPLIT FEATURES & TARGET
+# ==================================================
 
 # Features
 X = df.drop('price', axis=1)
 
-# Target variable
+# Target
 y = df['price']
 
 
-# --------------------------------
-# STEP 8 — Convert Categorical Data
-# --------------------------------
+# ==================================================
+# STEP 11 — ENCODE CATEGORICAL DATA
+# ==================================================
 
-X = pd.get_dummies(X, drop_first=True)
+X = pd.get_dummies(
+    X,
+    drop_first=True
+)
 
-# Check data types
-print("\nData Types:")
-print(X.dtypes)
 
-
-# --------------------------------
-# STEP 9 — Train Test Split
-# --------------------------------
-
-from sklearn.model_selection import train_test_split
+# ==================================================
+# STEP 12 — TRAIN TEST SPLIT
+# ==================================================
 
 X_train, X_test, y_train, y_test = train_test_split(
     X,
@@ -130,78 +200,155 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 
-# --------------------------------
-# STEP 10 — Import ML Model
-# --------------------------------
+# ==================================================
+# STEP 13 — LINEAR REGRESSION MODEL
+# ==================================================
 
-from sklearn.linear_model import LinearRegression
+print("\n===================================================")
+print("FINAL LINEAR REGRESSION MODEL")
+print("===================================================\n")
 
-
-# --------------------------------
-# STEP 11 — Create Model
-# --------------------------------
-
+# Create model
 model = LinearRegression()
 
-
-# --------------------------------
-# STEP 12 — Train Model
-# --------------------------------
-
+# Train model
 model.fit(X_train, y_train)
 
-
-# --------------------------------
-# STEP 13 — Model Accuracy
-# --------------------------------
-
-score = model.score(X_test, y_test)
-
-print("\nModel Accuracy (R² Score):")
-print(score)
-
-
-# --------------------------------
-# STEP 14 — Predictions
-# --------------------------------
-
+# Predictions
 prediction = model.predict(X_test)
 
-print("\nFirst 5 Predictions:")
-print(prediction[:5])
+# Accuracy
+r2 = r2_score(y_test, prediction)
+
+print("Model Accuracy (R2 Score):")
+print(r2)
+
+print("\nModel Accuracy Percentage:")
+print(r2 * 100)
 
 
-# --------------------------------
-# STEP 15 — Error Calculation
-# --------------------------------
-
-from sklearn.metrics import mean_absolute_error
-from sklearn.metrics import mean_squared_error
+# ==================================================
+# STEP 14 — ERROR METRICS
+# ==================================================
 
 # MAE
-mae = mean_absolute_error(y_test, prediction)
+mae = mean_absolute_error(
+    y_test,
+    prediction
+)
 
 print("\nMean Absolute Error (MAE):")
 print(mae)
 
 # RMSE
-rmse = np.sqrt(mean_squared_error(y_test, prediction))
+rmse = np.sqrt(
+    mean_squared_error(
+        y_test,
+        prediction
+    )
+)
 
 print("\nRoot Mean Squared Error (RMSE):")
 print(rmse)
 
 
-# --------------------------------
-# STEP 16 — Actual vs Predicted Plot
-# --------------------------------
+# ==================================================
+# STEP 15 — ACTUAL VS PREDICTED GRAPH
+# ==================================================
 
 plt.figure(figsize=(8, 6))
 
-plt.scatter(y_test, prediction)
+plt.scatter(
+    y_test,
+    prediction
+)
+
+# Perfect prediction line
+plt.plot(
+    [y_test.min(), y_test.max()],
+    [y_test.min(), y_test.max()],
+    color='red'
+)
 
 plt.xlabel("Actual Prices")
 plt.ylabel("Predicted Prices")
 
-plt.title("Actual vs Predicted House Prices")
+plt.title("Linear Regression: Actual vs Predicted")
 
 plt.show()
+
+
+# ==================================================
+# STEP 16 — IMPORTANT FEATURES
+# ==================================================
+
+# Getting feature coefficients
+
+feature_importance = pd.DataFrame({
+    'Feature': X.columns,
+    'Coefficient': model.coef_
+})
+
+feature_importance = feature_importance.sort_values(
+    by='Coefficient',
+    ascending=False
+)
+
+print("\n================ TOP IMPORTANT FEATURES ================\n")
+
+print(feature_importance.head(10))
+
+
+# ==================================================
+# STEP 17 — FEATURE IMPORTANCE GRAPH
+# ==================================================
+
+plt.figure(figsize=(10, 6))
+
+sns.barplot(
+    x='Coefficient',
+    y='Feature',
+    data=feature_importance.head(10)
+)
+
+plt.title("Top Important Features")
+
+plt.show()
+
+
+# ==================================================
+# STEP 18 — SAVE MODEL
+# ==================================================
+
+joblib.dump(
+    model,
+    'house_price_model.pkl'
+)
+
+print("\nModel saved successfully as house_price_model.pkl")
+
+
+# ==================================================
+# STEP 19 — PROJECT COMPLETED
+# ==================================================
+
+print("\n===================================================")
+print("PROJECT COMPLETED SUCCESSFULLY")
+print("===================================================\n")
+
+
+# ==================================================
+# FINAL PROJECT SUMMARY
+# ==================================================
+
+# COMPLETED:
+# 1. Data Cleaning
+# 2. Outlier Removal
+# 3. Feature Engineering
+# 4. Data Visualization
+# 5. Correlation Analysis
+# 6. Encoding
+# 7. Linear Regression Model
+# 8. Feature Importance
+# 9. Model Evaluation
+# 10. Saved ML Model
