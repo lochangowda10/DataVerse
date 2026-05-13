@@ -190,6 +190,15 @@ rmse = np.sqrt(mean_squared_error(y_test, prediction))
 print("\nRoot Mean Squared Error (RMSE):")
 print(rmse)
 
+# RMSLE (Track 2 Objective)
+from sklearn.metrics import mean_squared_log_error
+# Clip predictions to 0 to avoid ValueError from negative price predictions
+prediction_clipped = np.clip(prediction, 0, None)
+rmsle = np.sqrt(mean_squared_log_error(y_test, prediction_clipped))
+
+print("\nRoot Mean Squared Logarithmic Error (RMSLE):")
+print(rmsle)
+
 
 # --------------------------------
 # STEP 16 — Actual vs Predicted Plot
