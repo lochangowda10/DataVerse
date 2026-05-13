@@ -131,7 +131,7 @@ tab1, tab2, tab3 = st.tabs(["Efficiency Benchmark", "Technical Pivot", "Feature 
 
 def safe_image(path):
     if os.path.exists(path):
-        st.image(Image.open(path), use_container_width=True)
+        st.image(Image.open(path), width='stretch')
     else:
         st.warning(f"Image {path} not found.")
 
