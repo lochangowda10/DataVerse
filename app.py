@@ -172,10 +172,40 @@ with tab_pivot:
             min_dist = dist
             nearest_station = station_name
     
-    col_a, col_b, col_c = st.columns(3)
+    col_a, col_b = st.columns(2)
+    col_c, col_d = st.columns(2)
+    
     col_a.metric("Property Coordinates", f"{plat:.4f}, {plon:.4f}")
     col_b.metric("Nearest Metro Station", nearest_station)
     col_c.metric("Distance to Metro", f"{min_dist:.2f} km")
+    
+    # Predict the price dynamically to show the Metro Proximity Premium
+    if model:
+        try:
+            # Create a standard 3BHK 1500 sqft apartment for fair baseline comparison
+            pivot_features = pd.DataFrame([{
+                'area': 1500.0,
+                'location': 0.0,
+                'bhk': 3.0,
+                'bath': 2.0,
+                'balcony': 1.0,
+                'parking': 1.0,
+                'furnishing': 0.0,
+                'property_type': 0.0, # Apartment
+                'age': 5.0,
+                'total_rooms': 5.0,
+                'area_per_bhk': 500.0,
+                'bath_to_bhk_ratio': 0.666,
+                'location_mean_price': 1.2e7,
+                'property_mean_price': 1.1e7,
+                'distance_to_metro_km': min_dist
+            }])
+            
+            log_pred = model.predict(pivot_features)[0]
+            est_price = np.expm1(log_pred)
+            col_d.metric("Est. Price (Standard 3BHK)", f"₹ {est_price:,.2f}")
+        except:
+            col_d.metric("Est. Price", "Model Error")
     
     st.success("**Mathematical Conclusion (Pearson Correlation): -0.0817**")
     st.markdown("> *The negative correlation proves that as distance to the Metro INCREASES, the property price DECREASES. Thus, proximity to the Metro Hub generates a price premium!*")
