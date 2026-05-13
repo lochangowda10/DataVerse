@@ -14,18 +14,20 @@ def run_xgboost_model(data_path='../house_prices_bangalore.csv'):
     print("PHASE 2: XGBOOST MODEL (RMSLE FOCUSED)")
     print("===================================================")
     
-    # 1. Load Data
-    df = pd.read_csv(data_path)
+    # Import technical pivot
+    from technical_pivot_analysis import analyze_pivot
+    
+    # 1. Load Data with Technical Pivot (Coordinates & Distance to Metro)
+    df = analyze_pivot(data_path)
     print(f"\nOriginal dataset shape: {df.shape}")
-    print(df.columns.tolist())
-
+    
     # 2. Data Cleaning
     df = df.dropna()
     df = df.drop_duplicates()
     print(f"After cleaning: {df.shape}")
 
     # 3. Advanced Feature Engineering
-    # Using all 12 features: area, location, bhk, bath, balcony, parking, furnishing, property_type, age, total_rooms, area_per_bhk, bath_to_bhk_ratio
+    # Using our new powerful pivot feature: 'distance_to_metro_km'
     df['total_rooms']       = df['bhk'] + df['bath']
     df['area_per_bhk']      = df['area'] / df['bhk'].replace(0, 1)
     df['bath_to_bhk_ratio'] = df['bath'] / df['bhk'].replace(0, 1)
@@ -60,7 +62,7 @@ def run_xgboost_model(data_path='../house_prices_bangalore.csv'):
     feature_cols = ['area', 'location', 'bhk', 'bath', 'balcony', 'parking',
                     'furnishing', 'property_type', 'age',
                     'total_rooms', 'area_per_bhk', 'bath_to_bhk_ratio',
-                    'location_mean_price', 'property_mean_price']
+                    'location_mean_price', 'property_mean_price', 'distance_to_metro_km']
     feature_cols = [c for c in feature_cols if c in df.columns]
     print(f"\nFeatures used ({len(feature_cols)}): {feature_cols}")
 
