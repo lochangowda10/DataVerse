@@ -137,12 +137,12 @@ def safe_image(path):
 
 with tab1:
     st.markdown("**Why we didn't just use Random Forest:** We raced our models. Linear Regression is lightning fast, but our Stacked Ensemble proved to extract the absolute mathematical limit of this dataset's variance without committing Target Leakage.")
-    safe_image("../efficiency_presentation_slide.png")
+    safe_image("efficiency_presentation_slide.png")
 
 with tab2:
     st.markdown("**The Sudden Death 3:00 PM Pivot:** We proved a negative mathematical correlation (-0.0817) between price and distance to the Metro hub using the geometric Haversine Formula.")
-    safe_image("../pivot_metro_analysis.png")
+    safe_image("pivot_metro_analysis.png")
 
 with tab3:
     st.markdown("**Decision Tree Logic:** Here are the features actually driving the Stacked Ensemble.")
-    safe_image("../stacked_feature_importance.png")
+    safe_image("stacked_feature_importance.png")
