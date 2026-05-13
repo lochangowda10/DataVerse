@@ -147,14 +147,35 @@ with tab_pivot:
         'Malleshwaram': (13.0027353, 77.5703253), 'Hebbal': (13.0382184, 77.5919)
     }
     
+    # Namma Metro Major Stations
+    metro_stations = {
+        'Majestic (Kempegowda)': (12.9756, 77.5711),
+        'MG Road': (12.9755, 77.6067),
+        'Indiranagar Metro': (12.9783, 77.6387),
+        'Baiyappanahalli': (12.9907, 77.6525),
+        'RV Road': (12.9215, 77.5802),
+        'Yelachenahalli': (12.8959, 77.5735),
+        'Mysore Road': (12.9537, 77.5300),
+        'Peenya': (13.0336, 77.5255),
+        'Kengeri Metro': (12.9180, 77.4840),
+        'Whitefield (Kadugodi)': (12.9965, 77.7610)
+    }
+    
     plat, plon = all_coords[pivot_loc]
-    hub_lat, hub_lon = 12.9755, 77.6067 # MG Road Metro Hub
     
-    dist = haversine(plat, plon, hub_lat, hub_lon)
+    # Find NEAREST metro station
+    min_dist = float('inf')
+    nearest_station = ""
+    for station_name, (mlat, mlon) in metro_stations.items():
+        dist = haversine(plat, plon, mlat, mlon)
+        if dist < min_dist:
+            min_dist = dist
+            nearest_station = station_name
     
-    col_a, col_b = st.columns(2)
+    col_a, col_b, col_c = st.columns(3)
     col_a.metric("Property Coordinates", f"{plat:.4f}, {plon:.4f}")
-    col_b.metric("Distance to MG Road Metro", f"{dist:.2f} km")
+    col_b.metric("Nearest Metro Station", nearest_station)
+    col_c.metric("Distance to Metro", f"{min_dist:.2f} km")
     
     st.success("**Mathematical Conclusion (Pearson Correlation): -0.0817**")
     st.markdown("> *The negative correlation proves that as distance to the Metro INCREASES, the property price DECREASES. Thus, proximity to the Metro Hub generates a price premium!*")
